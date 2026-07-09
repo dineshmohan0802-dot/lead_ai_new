@@ -1,6 +1,11 @@
 import { supabase } from './supabase';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+let rawApiUrl = import.meta.env.VITE_API_URL || '/api';
+rawApiUrl = rawApiUrl.replace(/\/$/, '');
+if (rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api')) {
+  rawApiUrl += '/api';
+}
+const API_BASE = rawApiUrl;
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
