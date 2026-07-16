@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Zap, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
+import { Zap, Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, Shield } from 'lucide-react';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -21,7 +21,6 @@ export default function RegisterPage() {
     try {
       await signUp(email, password, fullName);
       setSuccess(true);
-      // Some Supabase configs auto-confirm, so try navigating
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
@@ -31,110 +30,152 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-950 px-4">
-      {/* Background glow */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
+    <div className="min-h-screen flex">
+      {/* Left: brand panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-violet-600 via-brand-600 to-brand-700 flex-col items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-white/5 rounded-full" />
+
+        <div className="relative z-10 text-center max-w-md">
+          <div className="inline-flex items-center gap-2.5 mb-10">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-2xl font-extrabold text-white tracking-tight">LeadPulse</span>
+          </div>
+
+          <h2 className="text-3xl font-extrabold text-white mb-4 leading-tight">
+            Start converting social<br />signals into revenue.
+          </h2>
+          <p className="text-brand-200 text-base leading-relaxed mb-10">
+            Join hundreds of B2B sales teams who use LeadPulse to find and close high-intent leads before competitors do.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 text-left">
+            {[
+              { icon: Shield, label: 'No credit card required' },
+              { icon: CheckCircle2, label: 'Free plan available' },
+              { icon: CheckCircle2, label: 'Setup in 5 minutes' },
+              { icon: Shield, label: 'Cancel anytime' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <item.icon className="w-4 h-4 text-brand-300 flex-shrink-0" />
+                <span className="text-sm text-brand-100">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="w-full max-w-md relative animate-slide-up">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-brand-500/30 mb-4">
-            <Zap className="w-7 h-7 text-white" />
+      {/* Right: form */}
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-12">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-xl font-extrabold text-gray-900">LeadPulse</span>
           </div>
-          <h1 className="text-3xl font-bold gradient-text">LeadPulse</h1>
-          <p className="text-surface-400 mt-2">Start capturing high-intent leads</p>
-        </div>
 
-        {/* Form */}
-        <div className="glass-card p-8 glow-brand">
-          <h2 className="text-xl font-semibold text-surface-100 mb-6">Create your account</h2>
+          <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-8">
+            <h1 className="text-2xl font-extrabold text-gray-900 mb-1">Create your account</h1>
+            <p className="text-sm text-gray-500 mb-7">
+              Start capturing high-intent leads today — free.
+            </p>
 
-          {success && (
-            <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
-              Account created! Redirecting...
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-                <input
-                  id="register-name"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                  className="input pl-10"
-                />
+            {success && (
+              <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                Account created! Redirecting to dashboard...
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-                <input
-                  id="register-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  className="input pl-10"
-                  required
-                />
+            {error && (
+              <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">⚠</span>
+                {error}
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-surface-300 mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-                <input
-                  id="register-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
-                  className="input pl-10"
-                  required
-                  minLength={6}
-                />
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    id="register-name"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+                  />
+                </div>
               </div>
-            </div>
 
-            <button
-              id="register-submit"
-              type="submit"
-              disabled={loading || success}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  Create Account
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Email address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    id="register-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="mt-6 text-center text-sm text-surface-400">
-            Already have an account?{' '}
-            <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium">
-              Sign in
-            </Link>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    id="register-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <button
+                id="register-submit"
+                type="submit"
+                disabled={loading || success}
+                className="w-full inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm py-3 rounded-xl transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Create Account
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-gray-500">
+              Already have an account?{' '}
+              <Link to="/login" className="text-brand-600 hover:text-brand-700 font-semibold transition-colors">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

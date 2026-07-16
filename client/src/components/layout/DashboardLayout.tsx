@@ -7,7 +7,7 @@ export default function DashboardLayout() {
   const { sidebarOpen } = useAppStore();
 
   return (
-    <div className="min-h-screen bg-surface-950">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
       <Topbar />
       <main

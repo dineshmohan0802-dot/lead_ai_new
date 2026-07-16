@@ -2,34 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '../lib/api';
 import {
-  Search, Filter, ChevronDown, ExternalLink,
-  MessageSquare, X, Copy, Check, ArrowUpDown,
-  Loader2, Users,
+  Search, ExternalLink,
+  MessageSquare, X, Copy, Check,
+  Loader2, Users, TrendingUp, ArrowUpDown,
 } from 'lucide-react';
+import { IntentBadge, SourceBadge, StatusBadge } from '../components/ui/Badge';
 
-function IntentBadge({ label }: { label: string }) {
-  const classes: Record<string, string> = {
-    hot: 'badge-hot', high: 'badge-high',
-    medium: 'badge-medium', low: 'badge-low',
-  };
-  return <span className={`badge ${classes[label] || 'badge-low'}`}>{label}</span>;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const classes: Record<string, string> = {
-    new: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    contacted: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    qualified: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    converted: 'bg-green-500/20 text-green-400 border-green-500/30',
-    dismissed: 'bg-surface-600/20 text-surface-400 border-surface-600/30',
-  };
-  return (
-    <span className={`badge border ${classes[status] || classes.new}`}>
-      {status}
-    </span>
-  );
-}
-
+// ─── Outreach Modal ───────────────────────────────────────────────
 function OutreachModal({
   lead,
   onClose,
@@ -55,27 +34,37 @@ function OutreachModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="glass-card w-full max-w-2xl max-h-[80vh] overflow-y-auto mx-4 animate-slide-up">
-        <div className="flex items-center justify-between p-6 border-b border-surface-700/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto border border-gray-100">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h3 className="text-lg font-semibold text-surface-100">Outreach for {lead.display_name}</h3>
-            <p className="text-sm text-surface-400 mt-0.5">{lead.company_name || 'Unknown company'}</p>
+            <h3 className="text-lg font-bold text-gray-900">
+              Outreach for {lead.display_name}
+            </h3>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {lead.company_name || 'Unknown company'}
+            </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-surface-700 text-surface-400">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5">
           {/* Signal context */}
-          <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700/30">
-            <p className="text-xs font-medium text-surface-500 uppercase mb-2">Signal Context</p>
-            <p className="text-sm text-surface-300 line-clamp-3">
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Signal Context
+            </p>
+            <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
               {enrichment?.summary || lead.signals?.text?.substring(0, 200) || 'No signal text'}
             </p>
             {enrichment?.reasoning && (
-              <p className="text-xs text-surface-500 mt-2 italic">
+              <p className="text-xs text-gray-400 mt-2 italic">
                 Intent reason: {enrichment.reasoning}
               </p>
             )}
@@ -86,44 +75,53 @@ function OutreachModal({
               {/* Opener */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-surface-300">Opener / Subject Line</p>
+                  <p className="text-sm font-semibold text-gray-700">Opener / Subject Line</p>
                   <button
                     onClick={() => copyToClipboard(enrichment.outreach_opening, 'opener')}
-                    className="btn-ghost btn-sm"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-all"
                   >
-                    {copied === 'opener' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    {copied === 'opener' ? 'Copied!' : 'Copy'}
+                    {copied === 'opener' ? (
+                      <><Check className="w-3.5 h-3.5 text-emerald-500" /> Copied!</>
+                    ) : (
+                      <><Copy className="w-3.5 h-3.5" /> Copy</>
+                    )}
                   </button>
                 </div>
-                <div className="p-4 rounded-lg bg-brand-600/10 border border-brand-500/20">
-                  <p className="text-sm text-surface-200">{enrichment.outreach_opening}</p>
+                <div className="p-4 rounded-xl bg-brand-50 border border-brand-100">
+                  <p className="text-sm text-gray-800">{enrichment.outreach_opening}</p>
                 </div>
               </div>
 
               {/* Full message */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-surface-300">Outreach Message</p>
+                  <p className="text-sm font-semibold text-gray-700">Outreach Message</p>
                   <button
                     onClick={() => copyToClipboard(enrichment.outreach_message, 'message')}
-                    className="btn-ghost btn-sm"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-all"
                   >
-                    {copied === 'message' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    {copied === 'message' ? 'Copied!' : 'Copy'}
+                    {copied === 'message' ? (
+                      <><Check className="w-3.5 h-3.5 text-emerald-500" /> Copied!</>
+                    ) : (
+                      <><Copy className="w-3.5 h-3.5" /> Copy</>
+                    )}
                   </button>
                 </div>
-                <div className="p-4 rounded-lg bg-surface-800/50 border border-surface-700/30">
-                  <p className="text-sm text-surface-200 whitespace-pre-wrap">{enrichment.outreach_message}</p>
+                <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {enrichment.outreach_message}
+                  </p>
                 </div>
               </div>
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-surface-400 mb-4">No outreach draft yet</p>
+              <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 mb-4">No outreach draft yet</p>
               <button
                 onClick={() => outreachMutation.mutate()}
                 disabled={outreachMutation.isPending}
-                className="btn-primary"
+                className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm disabled:opacity-50"
               >
                 {outreachMutation.isPending ? (
                   <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
@@ -134,17 +132,16 @@ function OutreachModal({
             </div>
           )}
 
-          {/* Regenerate */}
           {hasOutreach && (
             <button
               onClick={() => outreachMutation.mutate()}
               disabled={outreachMutation.isPending}
-              className="btn-secondary w-full"
+              className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl border border-gray-200 transition-all disabled:opacity-50"
             >
               {outreachMutation.isPending ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Regenerating...</>
               ) : (
-                <>Regenerate Outreach</>
+                'Regenerate Outreach'
               )}
             </button>
           )}
@@ -154,6 +151,99 @@ function OutreachModal({
   );
 }
 
+// ─── Lead Feed Card ───────────────────────────────────────────────
+function LeadCard({
+  lead,
+  onOutreach,
+  onStatusChange,
+}: {
+  lead: any;
+  onOutreach: () => void;
+  onStatusChange: (id: string, status: string) => void;
+}) {
+  const signal = lead.signals;
+  const enrichment = signal?.signal_enrichments?.[0];
+
+  return (
+    <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 hover:shadow-md transition-all duration-200 group">
+      <div className="flex items-start justify-between gap-4">
+        {/* Lead identity */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+            {(lead.display_name || '?')[0].toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-gray-900 truncate">{lead.display_name || 'Unknown'}</p>
+            {lead.company_name && (
+              <p className="text-xs text-gray-400 truncate">{lead.company_name}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Score chip */}
+        <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5 flex-shrink-0">
+          <TrendingUp className="w-3.5 h-3.5 text-brand-500" />
+          <span className="text-sm font-black text-gray-900">{lead.score}</span>
+          <span className="text-xs text-gray-400">pts</span>
+        </div>
+      </div>
+
+      {/* Badges row */}
+      <div className="flex items-center gap-2 mt-3 flex-wrap">
+        {signal?.source_name && <SourceBadge source={signal.source_name} />}
+        {enrichment?.intent_label && <IntentBadge label={enrichment.intent_label} />}
+        <StatusBadge status={lead.status} />
+      </div>
+
+      {/* Signal snippet */}
+      {(enrichment?.summary || signal?.text) && (
+        <p className="text-sm text-gray-500 mt-3 line-clamp-2 leading-relaxed">
+          {enrichment?.summary || signal?.text?.substring(0, 160)}
+        </p>
+      )}
+
+      {/* Actions row */}
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-400 font-medium">Status:</label>
+          <select
+            value={lead.status}
+            onChange={(e) => onStatusChange(lead.id, e.target.value)}
+            className="text-xs bg-white border border-gray-200 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
+          >
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="converted">Converted</option>
+            <option value="dismissed">Dismissed</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOutreach}
+            className="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all shadow-sm"
+          >
+            <MessageSquare className="w-3 h-3" />
+            Outreach
+          </button>
+          {signal?.url && (
+            <a
+              href={signal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────
 export default function LeadsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -193,27 +283,38 @@ export default function LeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-surface-100">Leads</h1>
-        <p className="text-surface-400 mt-1">Scored leads from social signals</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Leads</h1>
+          <p className="text-gray-500 mt-1 text-sm">Scored leads from social signals</p>
+        </div>
+        {leads.length > 0 && (
+          <span className="text-sm font-semibold text-gray-400">
+            {leads.length} leads
+          </span>
+        )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
+      {/* Filters bar */}
+      <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-4 flex flex-wrap items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search leads..."
-            className="input pl-10 py-2 text-sm"
+            className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
           />
         </div>
+
+        {/* Status filter */}
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="input w-auto py-2 text-sm"
+          className="text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
         >
           <option value="all">All Statuses</option>
           <option value="new">New</option>
@@ -222,130 +323,42 @@ export default function LeadsPage() {
           <option value="converted">Converted</option>
           <option value="dismissed">Dismissed</option>
         </select>
+
+        {/* Sort */}
+        <button
+          onClick={() => toggleSort('score')}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-2 rounded-xl hover:bg-gray-100 border border-gray-200 transition-all"
+        >
+          <ArrowUpDown className="w-3.5 h-3.5" />
+          Sort by score
+        </button>
       </div>
 
-      {/* Table */}
-      <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-700/50">
-                <th className="table-header">Lead</th>
-                <th className="table-header">Source</th>
-                <th
-                  className="table-header cursor-pointer hover:text-surface-200"
-                  onClick={() => toggleSort('score')}
-                >
-                  <div className="flex items-center gap-1">
-                    Score <ArrowUpDown className="w-3 h-3" />
-                  </div>
-                </th>
-                <th className="table-header">Intent</th>
-                <th className="table-header">Signal Snippet</th>
-                <th className="table-header">Status</th>
-                <th className="table-header text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-700/30">
-              {isLoading
-                ? Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i}>
-                      <td colSpan={7} className="table-cell">
-                        <div className="h-10 shimmer rounded" />
-                      </td>
-                    </tr>
-                  ))
-                : leads.map((lead: any) => {
-                    const signal = lead.signals;
-                    const enrichment = signal?.signal_enrichments?.[0];
-                    return (
-                      <tr
-                        key={lead.id}
-                        className="hover:bg-surface-800/30 transition-colors"
-                      >
-                        <td className="table-cell">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500/30 to-purple-500/30 flex items-center justify-center text-xs font-medium text-brand-300">
-                              {(lead.display_name || '?')[0].toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-surface-200">
-                                {lead.display_name || 'Unknown'}
-                              </p>
-                              <p className="text-xs text-surface-500">
-                                {lead.company_name || ''}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="table-cell">
-                          <span className={`badge badge-${signal?.source_name || 'low'}`}>
-                            {signal?.source_name || '-'}
-                          </span>
-                        </td>
-                        <td className="table-cell">
-                          <span className="text-lg font-bold text-surface-200">
-                            {lead.score}
-                          </span>
-                        </td>
-                        <td className="table-cell">
-                          <IntentBadge label={enrichment?.intent_label || 'low'} />
-                        </td>
-                        <td className="table-cell max-w-xs">
-                          <p className="text-sm text-surface-400 truncate">
-                            {enrichment?.summary || signal?.text?.substring(0, 80) || '-'}
-                          </p>
-                        </td>
-                        <td className="table-cell">
-                          <select
-                            value={lead.status}
-                            onChange={(e) =>
-                              statusMutation.mutate({ id: lead.id, status: e.target.value })
-                            }
-                            className="text-xs bg-transparent border border-surface-700 rounded-lg px-2 py-1 text-surface-300 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                          >
-                            <option value="new">New</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="qualified">Qualified</option>
-                            <option value="converted">Converted</option>
-                            <option value="dismissed">Dismissed</option>
-                          </select>
-                        </td>
-                        <td className="table-cell text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => setSelectedLead(lead)}
-                              className="btn-primary btn-sm"
-                            >
-                              <MessageSquare className="w-3 h-3" />
-                              Outreach
-                            </button>
-                            {signal?.url && (
-                              <a
-                                href={signal.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn-ghost btn-sm"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-            </tbody>
-          </table>
-          {!isLoading && leads.length === 0 && (
-            <div className="text-center py-16">
-              <Users className="w-12 h-12 text-surface-600 mx-auto mb-3" />
-              <p className="text-surface-400">No leads found</p>
-              <p className="text-surface-500 text-sm mt-1">Sync signals to generate leads</p>
-            </div>
-          )}
+      {/* Feed */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white border border-gray-100 rounded-2xl h-48 shimmer" />
+          ))}
         </div>
-      </div>
+      ) : leads.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {leads.map((lead: any) => (
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              onOutreach={() => setSelectedLead(lead)}
+              onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-16 text-center">
+          <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <p className="text-gray-600 font-semibold">No leads found</p>
+          <p className="text-gray-400 text-sm mt-1">Sync signals to generate leads</p>
+        </div>
+      )}
 
       {/* Outreach Modal */}
       {selectedLead && (
